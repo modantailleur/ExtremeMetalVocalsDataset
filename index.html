@@ -10,30 +10,26 @@ using a differentiable harmonic plus noise model</title>
 <body>
 
     <div id="header" class="container-fluid">
-            <h1>Efficient bandwidth extension of musical signals using a differentiable harmonic plus noise model</h1>
+            <h1>Extreme Voice Dataset</h1>
    </div>
 
 
 <div class="authors">
-	Pierre-Amaury Grumiaux, Mathieu Lagrange
+	Modan Tailleur, Julien Pinquier, Laurent Millot, Corsin Vogel, Mathieu Lagrange 
 </div>
 <div class="authors">
-	Contact: mathieu dot lagrange at ls2n dot fr
+	Contact: modan.tailleur@ls2n.fr
 </div>
 <div class="container">
     <h2>Abstract</h2>
     <p>
-        The task of bandwidth extension addresses the generation of missing high frequencies of audio signals based on knowledge of the low-frequency part of the sound. This task applies to various problems, such as audio coding or audio restoration. In this article, we focus on bandwidth extension of monophonic and polyphonic musical signals using a differentiable digital signal processing (DDSP) model. Such a model is composed of a neural network part trained to infer the parameters of a differentiable digital signal processing model, which efficiently generates the output full-band audio signal. 
-				<br>
-				We first address bandwidth extension of monophonic signals, and then propose two methods to handle polyphonic signals. The benefits of the proposed models are shown on monophonic and polyphonic synthetic data against a baseline and a deep-learning-based state-of-the-art model. The models are then evaluated on real data, in both monophonic and polyphonic context, and for a wide variety of instruments and musical genres. We show that all proposed models surpass the baseline and the state-of-the-art model for an objective metric computed in the frequency domain. A MUSHRA listening test confirms the superiority of the proposed approach.
-    </p>
-    <p>Experience code is available in <a href="https://github.com/mathieulagrange/ddspMusicBandwidthExtension">this github repo</a>.</p>
+      We present here Extreme Vocal Dataset, a dataset of extreme vocal techniques for the development and evaluation of machine learning models. It consists of 665 audio excerpts of audio ranging from 1s to 30s, with a total of 1h28min of audio (53min of distorted voices and 35min of clear voice). This dataset contains voices without any processing effects and without instruments in the background. This dataset is aimed for machine learning systems.    </p>
+    <p>Experience code is available in <a href="https://github.com/modantailleur/ExtremeVoiceDataset">this github repo</a>.</p>
 </div>
 
-<div class="container" id="abstractdiv">
-    <h2>MUSHRA listening test samples</h2>
-    <p>The following samples allow you to listen to the high frequency reconstruction of the different proposed models and baselines. The low-band input signal and ground-truth signals are given, as well as the output of the considered baseline models and DDSP-based models.
-    </p>
+<div class="container" id="table_techniques">
+    <h2>Extreme vocal techniques</h2>
+    <p>The 3 extreme distorsion techniques below, as long as the clear voice which is a non-distorted voice, were recorded at 3 different ranges (high, mid and low).</p>
     <table class="table table-responsive">
         <thead>
         <tr class="text-center">
@@ -44,29 +40,77 @@ using a differentiable harmonic plus noise model</title>
         </tr>
         </thead>
         <tbody>
+          <tr>
+            <td class="desc">Clear Voice</td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer2_ClearVoice_High_a.wav" type="audio/wav"></audio></td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer2_ClearVoice_Mid_a.wav" type="audio/wav"></audio></td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer2_ClearVoice_Low_a.wav" type="audio/wav"></audio></td>
+        </tr>
         <tr>
             <td class="desc">Black Shriek</td>
-            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet21_BlackShriek_High_a.wav" type="audio/wav"></audio></td>
-            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet21_BlackShriek_Mid_a.wav" type="audio/wav"></audio></td>
-            <td>-</td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer1_BlackShriek_Mid_a.wav" type="audio/wav"></audio></td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer21_BlackShriek_High_a.wav" type="audio/wav"></audio></td>
+            <td class="text-center">-</td>
         </tr>
 				
 				<tr>
             <td class="desc">Death Growl</td>
-            <td>-</td>
-            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet13_DeathGrowl_Mid_a.wav" type="audio/wav"></audio></td>
-            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet13_DeathGrowl_Low_a.wav" type="audio/wav"></audio></td>
+            <td class="text-center">-</td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer13_DeathGrowl_Mid_a.wav" type="audio/wav"></audio></td>
+            <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer13_DeathGrowl_Low_a.wav" type="audio/wav"></audio></td>
         </tr>
 
 				<tr>
           <td class="desc">Hardcore Scream</td>
-          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet15_HardcoreScream_High_a.wav" type="audio/wav"></audio></td>
-          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet15_HardcoreScream_Mid_a.wav" type="audio/wav"></audio></td>
-          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/CTED_Sujet15_HardcoreScream_Low_a.wav" type="audio/wav"></audio></td>
+          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer15_HardcoreScream_High_a.wav" type="audio/wav"></audio></td>
+          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer15_HardcoreScream_Mid_a.wav" type="audio/wav"></audio></td>
+          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer15_HardcoreScream_Low_a.wav" type="audio/wav"></audio></td>
         </tr>
 
         </tbody>
     </table>
+    <p> The Grind Inhale technique, as it was considered by most singers dangerous for their voice, was recorded only in one range</p>
+    <table class="table table-responsive">
+      <thead>
+      <tr class="text-center">
+          <td>Grind Inhale</td>
+          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer12_GrindInhale_a.wav" type="audio/wav"></audio></td>
+      </tr>
+      </thead>
+  </table>
+
+
+</div>
+
+<div class="container" id="table_effects">
+  <h2>Extreme vocal effects</h2>
+  <table class="table table-responsive">
+      <thead>
+      <tr class="text-center">
+          <td>Vocal Technique</td>
+          <td> </td>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+          <td class="desc">Pig Squeal</td>
+          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer12_Effect_PigSqueal.wav" type="audio/wav"></audio></td>
+      </tr>
+      
+      <tr>
+          <td class="desc">Deep Gutturals</td>
+          <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer14_Effect_DeepGutturals.wav" type="audio/wav"></audio></td>
+      </tr>
+
+      <tr>
+        <td class="desc">Tunnel Throat</td>
+        <td class="text-center"><audio controls class="sample_audio"><source src="audio_examples/Singer10_Effect_TunnelThroat.wav" type="audio/wav"></audio></td>
+      </tr>
+
+      </tbody>
+  </table>
+
+  
 </div>
 
 <script>
@@ -83,8 +127,7 @@ function setupCallback(elem, elems) {
 
 document.addEventListener('DOMContentLoaded', function () {
   var elems = document.body.getElementsByTagName("audio");
-  for (var elem of elems) {
-    setupCallback(elem, elems);
+  for (var elem of elems) {    setupCallback(elem, elems);
   }
 });
 </script>
