@@ -18,13 +18,10 @@ with h5py.File(out_path + out_name+ '.h5', 'r') as hf:
         inference += [item.decode('utf-8') for item in inference_dataset]
         groundtruth += [item.decode('utf-8') for item in groundtruth_dataset]
 
-# Create a dictionary from the lists
 data = {'Name': name, 'Inference': inference, 'GroundTruth': groundtruth}
-# Create a pandas DataFrame
 df = pd.DataFrame(data)
-# Print the DataFrame
 df['Name'] = df['Name'].str.split('__').str[0]
-print(df)
+
 inference_one_hot = pd.get_dummies(df['Inference'], prefix='')
 groundtruth_one_hot = pd.get_dummies(df['GroundTruth'], prefix='')
 
@@ -34,37 +31,25 @@ groundtruth_one_hot = pd.concat([df['Name'], groundtruth_one_hot], axis=1)
 inference_avg = inference_one_hot.groupby('Name').mean().reset_index()
 groundtruth_avg = groundtruth_one_hot.groupby('Name').mean().reset_index()
 
-print('before')
-print(inference_avg)
-print(groundtruth_avg)
-
 # Apply thresholding: below 0.5 becomes 0, 0.5 or above becomes 1
 one_hot_columns_inf = inference_avg.columns[1:]  # Assuming one-hot columns start from the 4th column
 inference_avg['Max'] = inference_avg[one_hot_columns_inf].idxmax(axis=1)
 one_hot_columns_gt = groundtruth_avg.columns[1:]  # Assuming one-hot columns start from the 4th column
 groundtruth_avg['Max'] = groundtruth_avg[one_hot_columns_gt].idxmax(axis=1)
 
-print('and after')
-print(inference_avg)
-print(groundtruth_avg)
-
+# score calculation at the scale of a mel-spectrogram frame
 inference = np.array(inference)
 groundtruth = np.array(groundtruth)
 scores = inference == groundtruth
 
-print(scores)
-print(len(inference))
-print(len(groundtruth))
-print(np.mean(scores))
-print(confusion_matrix(inference, groundtruth, normalize='true'))
+#score calculation at the scale of 
+inference_file = inference_avg['Max'].to_numpy()
+groundtruth_file = groundtruth_avg['Max'].to_numpy()
+scores_file = inference_file == groundtruth_file
 
-inference_macro = inference_avg['Max'].to_numpy()
-groundtruth_macro = groundtruth_avg['Max'].to_numpy()
-scores_macro = inference_macro == groundtruth_macro
-
-
-print(scores)
-print(len(inference_macro))
-print(len(groundtruth_macro))
-print(np.mean(scores_macro))
-print(confusion_matrix(inference_macro, groundtruth_macro, normalize='true'))
+conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true')
+print('MICRO ACCURACY')
+print(np.mean(scores_file))
+print('MACRO ACCURACY')
+print(np.mean(np.diag(conf_mat)))
+# print(conf_mat)

@@ -406,6 +406,7 @@ class MelRegularTrainer:
                 'losses_eval': np.array(losses_eval)
             }
         
+        #MT: just for testing
         # self.best_state_dict = copy.deepcopy(self.model.state_dict())
         # losses_train = np.array(losses_train)
         return(losses)
