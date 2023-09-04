@@ -27,7 +27,7 @@ def main(config):
         em.eval_model(dataset_name=dataset_name, model_prefix=model_prefix, groundtruth=groundtruth, out_name=out_name)
 
     if config.step == 'metric':
-        em.calculate_metric(out_name=out_name)
+        em.calculate_metric(out_name=out_name, exp_type=groundtruth)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -14,6 +14,8 @@ from trainer import MelTrainer, MelRegularTrainer
 import torch
 import numpy as np
 from sklearn.metrics import confusion_matrix
+from torchaudio.transforms import MelSpectrogram
+import torch
 
 #fix the random seed
 torch.manual_seed(0)
@@ -52,8 +54,6 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
     #####################
 
     if not distorsion_in_train:
-        print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-        print('NO DISTORSION IN TRAIN')
         for col in split_k_columns:
             df_meta[col] = df_meta.apply(lambda row: 'out' if row[col] == 'train' and row['name'] != 'ClearVoice' else row[col], axis=1)
 
@@ -78,12 +78,31 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
         'valid':1, 
         'eval':2
     }
-    n_frames = 64
+    n_frames = 192
     n_fft=1024
     hop_length = 256
     n_mels = 128
     fmin=20
     fmax=8000
+    window = 'hann'
+    norm = "slaney"
+    mel_scale = "slaney"
+
+    melspec_layer = MelSpectrogram(
+        n_mels=n_mels,
+        sample_rate=48000,
+        n_fft=n_fft,
+        win_length=n_fft,
+        hop_length=hop_length,
+        f_min=fmin,
+        f_max=fmax,
+        center=True,
+        power=2.0,
+        mel_scale=mel_scale,
+        norm=norm,
+        normalized=True,
+        pad_mode="constant",
+    )
 
     #have to first calculate the melspectrograms, in order to get their shape to create the h5 files. Takes a bit of time but makes things easier 
     # for training and evaluating (only 1 h5 file for a dataset)
@@ -91,7 +110,16 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
         
         audio, sr = librosa.load('CTED/'+f_name, sr=48000)
         audio = librosa.util.normalize(audio)
-        mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
+
+        x_wave = torch.Tensor(audio).unsqueeze(0)
+        torch_mels = melspec_layer(x_wave)
+        torch_mels = 10 * torch.log10(torch_mels + 1e-10)
+        torch_mels = torch.clamp((torch_mels + 100) / 100, min=0.0)
+        mels = torch_mels.squeeze(0).numpy()
+
+        # mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
+        # mels = np.log(mels + 10e-10)
+
         mels = np.array([mels[:, i:i + n_frames] for i in range(0, mels.shape[1], n_frames) if mels[:, i:i + n_frames].shape[1] == n_frames])
 
         mels_n_num = mels_n_num + mels.shape[0]
@@ -139,9 +167,17 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
 
             audio, sr = librosa.load('CTED/'+f_name, sr=48000)
             audio = librosa.util.normalize(audio)
-            mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
-            mels = np.array([mels[:, i:i + n_frames] for i in range(0, mels.shape[1], n_frames) if mels[:, i:i + n_frames].shape[1] == n_frames])
 
+            x_wave = torch.Tensor(audio).unsqueeze(0)
+            torch_mels = melspec_layer(x_wave)
+            torch_mels = 10 * torch.log10(torch_mels + 1e-10)
+            torch_mels = torch.clamp((torch_mels + 100) / 100, min=0.0)
+            mels = torch_mels.squeeze(0).numpy()
+
+            # mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
+            # mels = np.log(mels + 10e-10)
+
+            mels = np.array([mels[:, i:i + n_frames] for i in range(0, mels.shape[1], n_frames) if mels[:, i:i + n_frames].shape[1] == n_frames])
 
             for split in range(n_splits):
                 try:
@@ -158,7 +194,7 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
                 
                 print(f'\rCOMPUTED: {idx} / {len(f_names)}')
 
-def train_model(dataset_name='default', model_prefix='default', groundtruth='technique', epochs=20):
+def train_model(dataset_name='default', model_prefix='default', groundtruth='technique', epochs=20, batch_size=32):
 
     if groundtruth == 'technique':
         Dataset = TechniqueClassificationDataset
@@ -202,7 +238,7 @@ def train_model(dataset_name='default', model_prefix='default', groundtruth='tec
 
     for split_id in range(n_splits):
         trainer = MelRegularTrainer(model=models[split_id], models_path='./model/', model_name=f'{model_prefix}_{split_id+1}', split_id=split_id, train_dataset=train_datasets[split_id], valid_dataset=valid_datasets[split_id], eval_dataset=eval_datasets[split_id])
-        loss_train = trainer.train(device=device, batch_size=256, epochs=epochs)
+        loss_train = trainer.train(device=device, batch_size=batch_size, epochs=epochs)
         np.save('losses/loss_'+trainer.model_name+'.npy', loss_train)
         trainer.save_model()
 
@@ -250,7 +286,7 @@ def eval_model(dataset_name='default', model_prefix='default', groundtruth='tech
         trainer.load_model(device=device)
         trainer.evaluate(device=device)
 
-def calculate_metric(out_name='default'):
+def calculate_metric(out_name='default', exp_type='technique'):
     out_path = './outputs/'
     n_splits = 4
     inference = []
@@ -294,7 +330,12 @@ def calculate_metric(out_name='default'):
     groundtruth_file = groundtruth_avg['Max'].to_numpy()
     scores_file = inference_file == groundtruth_file
 
-    conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true')
+    if exp_type == 'technique':
+        labels = ['_ClearVoice', '_BlackShriek', '_DeathGrowl', '_HardcoreScream']
+        conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true', labels=labels)
+    else:
+        conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true')
+
     print('MICRO ACCURACY')
     print(np.mean(scores_file))
     print('MACRO ACCURACY')

@@ -27,7 +27,7 @@ file_meta_singers = "metadata_singers.csv"
 df_meta = pd.read_csv(file_meta)
 df_meta = df_meta[df_meta['type']=='Technique']
 df_meta = df_meta[df_meta['authors_rank']!='C']
-df_meta = df_meta[df_meta['authors_rank']!='B']
+# df_meta = df_meta[df_meta['authors_rank']!='B']
 df_meta = df_meta[df_meta['name']!='GrindInhale']
 df_meta = df_meta.sort_values(by=['singer_id'])
 n_splits = 4

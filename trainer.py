@@ -421,8 +421,8 @@ class MelRegularTrainer:
         if dataset.split_type == 'eval':
             sampler = self.eval_sampler
         
-        valid_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, num_workers=8, pin_memory=False, drop_last=False, sampler=sampler)
-        # valid_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=False, drop_last=False)
+        # valid_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, num_workers=8, pin_memory=False, drop_last=False, sampler=sampler)
+        valid_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=False, drop_last=False)
         tqdm_it=tqdm(valid_dataloader, desc=label+': Chunk {}/{}'.format(0,0))
 
         for (idx,_, x,y) in tqdm_it:
@@ -512,7 +512,7 @@ class MelRegularTrainer:
 
         # with open(self.models_path + self.model_name + '_settings.yaml', 'w') as file:
         #     yaml.dump(model_settings, file)
-    def evaluate(self, batch_size=64, device=torch.device("cpu")):
+    def evaluate(self, batch_size=32, device=torch.device("cpu")):
         self.model.eval
                 
         self.eval_dataloader = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=False, drop_last=False)

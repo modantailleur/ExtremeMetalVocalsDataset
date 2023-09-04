@@ -13,7 +13,7 @@ from pathlib import Path
 from efficientnet_pytorch import EfficientNet
 
 class EffNet(nn.Module):
-    def __init__(self, n_labels, dtype=torch.FloatTensor, device=torch.device("cpu")):
+    def __init__(self, n_labels, dtype=torch.FloatTensor, device=torch.device("cpu"), type='b0'):
         """
         Initializes the EffNet nn model class. This is the class used for the transcoders effnet_b0 and effnet_b7 in exp_train_model/main_doce_training.py. 
 
@@ -26,16 +26,28 @@ class EffNet(nn.Module):
         """
         super().__init__()
         
+        print(f'Efficient net {type}')
         ###############
         #models loading
-        self.model = EfficientNet.from_name('efficientnet-b0', num_classes=n_labels)
+        if type == 'b7':
+            self.model = EfficientNet.from_name('efficientnet-b7', num_classes=n_labels)
+            self.model._conv_stem = nn.Conv2d(1, 64, kernel_size=3, stride=2, bias=False)
+        if type == 'b0':
+            self.model = EfficientNet.from_name('efficientnet-b0', num_classes=n_labels)
+            self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
+        if type == 'b1':
+            self.model = EfficientNet.from_name('efficientnet-b1', num_classes=n_labels)
+            self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
+        if type == 'b5':
+            self.model = EfficientNet.from_name('efficientnet-b5', num_classes=n_labels)
+            self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
+
         # state_dict = torch.load("./efficient_net/efficientnet-b0-355c32eb.pth")
         # state_dict.pop('_fc.weight')
         # state_dict.pop('_fc.bias')
         # self.model.load_state_dict(state_dict, strict=False)
 
-        # modify input conv layer to accept 1x101x64 input
-        self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
+        # modify input conv layer to accept 1x101x64 input        
 
         self.model.to(device)
 
