@@ -1,4 +1,4 @@
-singer_id,gender,status,recording,distance_to_microphone(cm),microphone,audio_interface,DAO,ClearVoice_High,ClearVoice_Mid,ClearVoice_Low,BlackShriek_High,BlackShriek_Mid,DeathGrowl_Mid,DeathGrowl_Low,HardcoreScream_High,HardcoreScream_Mid,HardcoreScream_Low,GrindInhale,PigSqueal,DeepGutturals,TunnelThroat
+singer_id,gender,status,recording,distance_to_microphone(cm),microphone,audio_interface,DAW,ClearVoice_High,ClearVoice_Mid,ClearVoice_Low,BlackShriek_High,BlackShriek_Mid,DeathGrowl_Mid,DeathGrowl_Low,HardcoreScream_High,HardcoreScream_Mid,HardcoreScream_Low,GrindInhale,PigSqueal,DeepGutturals,TunnelThroat
 1,M,Non-professional,Onsite,10,SM58,Focusrite 6i6,Protools,1,1,1,0,3,5,5,0,3,0,0,0,4,1
 2,M,Professional,Onsite,3,SM58,Focusrite 6i6,Protools,3,3,3,4,3,5,5,0,1,3,0,0,0,5
 3,M,Non-professional,Guided,10,Shure Beta 58a,Zoom R16,Cubase,1,1,1,3,4,5,5,3,0,0,4,4,1,1

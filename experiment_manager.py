@@ -8,7 +8,7 @@ import h5py
 import librosa
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
-from data_generator import SingerSplitDataset, TechniqueClassificationDataset, SingerClassificationDataset
+from data_generator import SingerSplitDataset, TechniqueClassificationDataset, BinaryTechniqueClassificationDataset,  SingerClassificationDataset
 from models import EffNet, MLP
 from trainer import MelTrainer, MelRegularTrainer
 import torch
@@ -16,6 +16,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from torchaudio.transforms import MelSpectrogram
 import torch
+import matplotlib as mpl
 
 #fix the random seed
 torch.manual_seed(0)
@@ -40,12 +41,12 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
     df_meta = df_meta.merge(df_k_folds, on='file_name')
 
     #keep only rows where there is a split_k value
-    split_k_columns = [col for col in df_meta.columns if 'split_k_' in col]
+    split_k_columns = [col for col in df_meta.columns if 'split' in col]
     mask = df_meta[split_k_columns] != "None"
     df_meta = df_meta[mask.all(axis=1)]
     df_meta.reset_index(drop=True, inplace=True)
 
-    n_splits = sum(1 for col in df_meta.columns if 'split_k_' in col)
+    n_splits = sum(1 for col in df_meta.columns if 'split' in col)
 
     #######################
     ###################
@@ -66,7 +67,7 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
     f_names = df_meta['file_name'].to_numpy()
     f_gts = df_meta['name'].to_numpy()
     f_singers = df_meta['singer_id'].to_numpy()
-    f_splits =  df_meta.filter(like='split_k_', axis=1).to_numpy()
+    f_splits =  df_meta.filter(like='split', axis=1).to_numpy()
 
     out_path = './mel_dataset/'
 
@@ -139,7 +140,7 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
         split_groups = []
         for split in range(n_splits):  
 
-            split_group = hf.create_group(f'split_k_{split}')
+            split_group = hf.create_group(f'split{split}')
             split_groups.append(split_group)
 
             train_group = split_group.create_group('train')
@@ -185,10 +186,10 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
                 except KeyError:
                     continue
 
-                hf[f'split_k_{split}'][f_split[split]]['audio_name'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = [f_name + '___' + str(k) for k in range(mels.shape[0])]
-                hf[f'split_k_{split}'][f_split[split]]['mel_spectrogram'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = mels
-                hf[f'split_k_{split}'][f_split[split]]['technique'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = [f_gt for k in range(mels.shape[0])]
-                hf[f'split_k_{split}'][f_split[split]]['singer'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = [f_singer for k in range(mels.shape[0])]
+                hf[f'split{split}'][f_split[split]]['audio_name'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = [f_name + '___' + str(k) for k in range(mels.shape[0])]
+                hf[f'split{split}'][f_split[split]]['mel_spectrogram'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = mels
+                hf[f'split{split}'][f_split[split]]['technique'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = [f_gt for k in range(mels.shape[0])]
+                hf[f'split{split}'][f_split[split]]['singer'][mels_n_num[split][tve_idx]:mels_n_num[split][tve_idx]+mels.shape[0]] = [f_singer for k in range(mels.shape[0])]
 
                 mels_n_num[split][tve_idx] += mels.shape[0]
                 
@@ -199,6 +200,10 @@ def train_model(dataset_name='default', model_prefix='default', groundtruth='tec
     if groundtruth == 'technique':
         Dataset = TechniqueClassificationDataset
         n_labels = 4
+
+    if groundtruth == 'technique_binary':
+        Dataset = BinaryTechniqueClassificationDataset
+        n_labels = 2
 
     if groundtruth == 'singer':
         Dataset = SingerClassificationDataset
@@ -248,6 +253,10 @@ def eval_model(dataset_name='default', model_prefix='default', groundtruth='tech
         Dataset = TechniqueClassificationDataset
         n_labels = 4
 
+    if groundtruth == 'technique_binary':
+        Dataset = BinaryTechniqueClassificationDataset
+        n_labels = 2
+
     if groundtruth == 'singer':
         Dataset = SingerClassificationDataset
         n_labels = 27
@@ -295,9 +304,9 @@ def calculate_metric(out_name='default', exp_type='technique'):
 
     with h5py.File(out_path + out_name+ '.h5', 'r') as hf:
         for split_id in range(n_splits):
-            inference_dataset = hf[f'split_k_{split_id}']['inference']['inference']
-            groundtruth_dataset = hf[f'split_k_{split_id}']['inference']['groundtruth']
-            name += [item.decode('utf-8') for item in hf[f'split_k_{split_id}']['inference']['audio_name']]
+            inference_dataset = hf[f'split{split_id}']['inference']['inference']
+            groundtruth_dataset = hf[f'split{split_id}']['inference']['groundtruth']
+            name += [item.decode('utf-8') for item in hf[f'split{split_id}']['inference']['audio_name']]
             inference += [item.decode('utf-8') for item in inference_dataset]
             groundtruth += [item.decode('utf-8') for item in groundtruth_dataset]
 
@@ -333,6 +342,21 @@ def calculate_metric(out_name='default', exp_type='technique'):
     if exp_type == 'technique':
         labels = ['_ClearVoice', '_BlackShriek', '_DeathGrowl', '_HardcoreScream']
         conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true', labels=labels)
+        # mpl.rcParams['font.family'] = 'Times New Roman'
+        # mpl.rcParams['font.size'] = 20
+        plt.figure(figsize=(8, 6))
+        # sns.set_theme(font='Times New Roman', font_scale=1)
+        sns.set(font='Times New Roman', font_scale=1.8)
+        sns.heatmap(conf_mat*100, annot=True, cmap="magma_r", fmt=".0f",
+            xticklabels=['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream'], 
+            yticklabels=['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream'], annot_kws={"weight": "bold"})
+        plt.xticks(rotation=45, ha='right')
+        plt.yticks(rotation=0, ha='right')
+        plt.subplots_adjust(left=0.3, right=1.0, top=0.9, bottom=0.3)
+        # plt.xlabel("Predicted")
+        # plt.ylabel("Actual")
+        # plt.title("Confusion Matrix")
+        plt.show()
     else:
         conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true')
 

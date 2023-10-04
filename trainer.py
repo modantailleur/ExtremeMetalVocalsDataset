@@ -355,7 +355,6 @@ class MelRegularTrainer:
         loss_eval = self.validate(self.eval_dataset, 0, batch_size=batch_size, device=self.device, label='EVALUATION')
         losses_eval.append(loss_eval)
         
-        
         #validation on evaluation
         self.train_dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size, num_workers=8, pin_memory=False, drop_last=False, sampler=self.train_sampler)
         cur_loss = 0
@@ -433,7 +432,7 @@ class MelRegularTrainer:
             y = y.to(device)
 
             y_pred = self.model(x)
-
+            
             cur_loss = loss_function(y_pred,y)
 
             losses_valid.append(cur_loss.detach())
@@ -523,7 +522,7 @@ class MelRegularTrainer:
         #               mode='w+', shape=(self.eval_dataset.n_tho_frames, self.classif_inference.n_labels))
 
         with h5py.File(self.out_path + self.out_name + '.h5', 'a') as hf:
-            group = f'split_k_{self.split_id}'
+            group = f'split{self.split_id}'
             if group in hf:
                 del hf[group]
                 print(f"Group {group} deleted.")

@@ -8,6 +8,12 @@ def main(config):
         model_prefix = 'model_t_classif'
         groundtruth='technique'
 
+    if config.exp == 't_binary':
+        dataset_name = 'mel_dataset_kfold'
+        out_name = 't_binary'
+        model_prefix = 'model_t_binary'
+        groundtruth='technique_binary'
+
     if config.exp == 's_classif':  
         dataset_name = 'mel_dataset_kfold'
         out_name = 's_classif'
@@ -31,7 +37,7 @@ def main(config):
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-exp', '--exp', help='experiment among the list: "t_classif", "s_classif", "s_classif_no_distorsion"')
+    parser.add_argument('-exp', '--exp', help='experiment among the list: "t_classif", "t_binary", "s_classif", "s_classif_no_distorsion"')
     parser.add_argument('-step', '--step', help='step among the list: "train", "eval", "metric"')
     config = parser.parse_args()
     main(config)

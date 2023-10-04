@@ -62,12 +62,13 @@ plt.figure(figsize=(10, 6))
 
 col_pal = sns.color_palette("colorblind")
 order = ['ClearVoice', 'BlackShriek', 'DeathGrowl', 'HardcoreScream', 'GrindInhale', 'PigSqueal', 'DeepGutturals', 'TunnelThroat']
-short_name = ['CC', 'BS', 'DG', 'HS', 'GI', 'PS', 'DeG', 'TT']
+short_name = ['CV', 'BS', 'DG', 'HS', 'GI', 'PS', 'DeG', 'TT']
+full_name = ['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream', 'Grind Inhale', 'Pig Squeel', 'Deep Gutturals', 'Tunnel Throat']
 colors = [col_pal[9], col_pal[9], col_pal[9], col_pal[9], col_pal[9], col_pal[5], col_pal[5], col_pal[5]]
 
 # Create a bar plot
-ax = sns.barplot(data=df_bar, x='name', y='total_audio_len', palette=colors, order=order)
-ax.set_xticklabels(short_name)
+ax = sns.barplot(data=df_bar, y='name', x='total_audio_len', palette=colors, order=order)
+ax.set_yticklabels(full_name)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_visible(False)
@@ -76,8 +77,8 @@ ax.spines['bottom'].set_visible(False)
 sns.set_color_codes("muted")
 
 # plt.xlabel('Technique or vocal effect')
-plt.ylabel('Duration (s)')
-plt.xlabel('')
+plt.xlabel('Duration (s)')
+plt.ylabel('')
 # plt.title('Duration of each vocal technique and vocal effect')
 #plt.xticks(rotation=45, ha='right')
 # Remove the top and right spines (lines)
@@ -130,19 +131,19 @@ print(df_bar_singer)
 plt.figure(figsize=(10, 6))
 
 # Create a bar plot
-ax = sns.barplot(data=df_bar_singer, x='name', y='num_singers', palette=colors, order=order)
-ax.set_xticklabels(short_name)
+ax = sns.barplot(data=df_bar_singer, y='name', x='num_singers', palette=colors, order=order)
+ax.set_yticklabels(full_name)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_visible(False)
 ax.spines['bottom'].set_visible(False)
 
 # plt.xlabel('Technique')
-plt.xlabel('')
-plt.ylabel('Number of singers')
+plt.ylabel('')
+plt.xlabel('Number of singers')
 # plt.title('Number of singers for each technique')
 
-plt.xticks(rotation=45, ha='right')
+plt.xticks(rotation=0, ha='right')
 # plt.legend(title='Vowel')
 plt.tight_layout()
 plt.show()

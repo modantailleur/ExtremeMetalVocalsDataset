@@ -26,8 +26,7 @@ file_meta_singers = "metadata_singers.csv"
 #read df and filter
 df_meta = pd.read_csv(file_meta)
 df_meta = df_meta[df_meta['type']=='Technique']
-df_meta = df_meta[df_meta['authors_rank']!='C']
-# df_meta = df_meta[df_meta['authors_rank']!='B']
+df_meta = df_meta[df_meta['authors_rank']!='0']
 df_meta = df_meta[df_meta['name']!='GrindInhale']
 df_meta = df_meta.sort_values(by=['singer_id'])
 n_splits = 4
@@ -84,7 +83,7 @@ for idx, (fulltrain_index, eval_index) in enumerate(split_gen):
 # eval_splits = np.array(eval_splits)
 
 for split_idx in range(n_splits):
-    split_name = f'split_k_{split_idx}'
+    split_name = f'split{split_idx}'
     
     df_meta[split_name] = 'train'
     df_meta.loc[valid_splits[split_idx], split_name] = 'valid'
@@ -104,7 +103,7 @@ cols_to_use = df_meta.columns.difference(df.columns)
 merged_df = df.merge(df_meta.drop(columns=['singer_id', 'type', 'name', 'range', 'vowel', 'authors_rank', 'duration(s)']), on='file_name', how='left')
 merged_df = merged_df.drop(columns=['singer_id', 'type', 'name', 'range', 'vowel', 'authors_rank', 'duration(s)'])
 # Replace NaN values with 'None'
-merged_df = merged_df.fillna('None')
+merged_df = merged_df.fillna('-')
 
 print(df_meta)
 print(df)

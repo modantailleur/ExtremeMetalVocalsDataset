@@ -5,7 +5,7 @@ import librosa
 from torchaudio.transforms import MelSpectrogram
 import torch
 
-def plot_multi_spectro(x_m, z_m, fs, title_x, title_z, vmin=None, vmax=None, diff=False, name='default', ylabel='Mel bin', save=False):
+def plot_multi_spectro(x_m, z_m, fs, title_x, title_z, vmin=None, vmax=None, diff=False, name='default', ylabel='Mel bin', cbar_label="Power (dB)", save=False, y_n_fft=None):
     if vmin is None:
         all_data = np.concatenate([x_m, z_m])
         vmin = np.min(all_data)
@@ -47,19 +47,24 @@ def plot_multi_spectro(x_m, z_m, fs, title_x, title_z, vmin=None, vmax=None, dif
                 ylabel_ = ''
             
             if diff:
-                im = ax.imshow(spectro_data, extent=[extlmin, extlmax, exthmin, exthmax], cmap='seismic',
+                im = ax.imshow(spectro_data, extent=[extlmin, extlmax, exthmin, exthmax], cmap='seismic_r',
                                vmin=vmin, vmax=vmax, origin='lower', aspect='auto')
             else:
-                im = ax.imshow(spectro_data, extent=[extlmin, extlmax, exthmin, exthmax], cmap='inferno',
+                im = ax.imshow(spectro_data, extent=[extlmin, extlmax, exthmin, exthmax], cmap='inferno_r',
                                vmin=vmin, vmax=vmax, origin='lower', aspect='auto')
 
             ax.set_title(title)
             ax.set_ylabel(ylabel_)
 
+            if y_n_fft is not None:
+                num_y_ticks = len(ax.get_yticks())
+                ax.set_yticklabels(ax.get_yticks()*(fs/y_n_fft)/2)
+
+
     fig.text(0.5, 0.1, 'Time (s)', ha='center', va='center')
 
     cbar_ax = fig.add_axes([0.97, 0.15, 0.01, 0.7])
-    cbar = fig.colorbar(im, cax=cbar_ax, label='Power (dB)')
+    cbar = fig.colorbar(im, cax=cbar_ax, label=cbar_label)
     cbar.ax.yaxis.set_label_position('left')
     cbar.ax.yaxis.set_ticks_position('left')
 
@@ -163,14 +168,18 @@ for f_name in audios_to_show:
 
     audio, sr = librosa.load(f_name, sr=48000)
     audio = librosa.util.normalize(audio)[48000:96000]
-    mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax, window=window)
-    mels = np.log(mels + 10e-10) + 94
+    spec = librosa.stft(y=audio, n_fft=n_fft, hop_length=hop_length, window=window)
+    spec = np.abs(spec)
+    # spec = np.log(spec+10e-10)
+
+    # mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax, window=window)
+    # mels = np.log(mels + 10e-10) + 94
     # x_wave = torch.Tensor(audio).unsqueeze(0)
     # torch_mels = melspec_layer(x_wave)
     # torch_mels = 10 * torch.log10(torch_mels + 1e-10)
     # torch_mels = torch.clamp((torch_mels + 100) / 100, min=0.0)
     # mels = torch_mels.squeeze(0).numpy()
-    x_mels_list.append(mels)
+    x_mels_list.append(spec[:100, :])
 
 # plot_multi_spectro(mels_list[:], 48000, title=['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream', 'Grind Inhale'], vmin=84, vmax=97)
 
@@ -181,8 +190,12 @@ for f_name in audios_to_show:
 
     audio, sr = librosa.load(f_name, sr=48000)
     audio = librosa.util.normalize(audio)[48000:96000]
-    mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
-    mels = np.log(mels + 10e-10) + 94
-    z_mels_list.append(mels)
+    spec = librosa.stft(y=audio, n_fft=n_fft, hop_length=hop_length, window=window)
+    spec = np.abs(spec)
+    # spec = np.log(spec+10e-10)
+    # mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
+    # mels = np.log(mels + 10e-10) + 94
+    print(spec.shape)
+    z_mels_list.append(spec[:100, :])
 
-plot_multi_spectro(x_mels_list[:], z_mels_list[:], 48000, title_x=['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream'], title_z=['Grind Inhale', 'Pig Squeal', 'Deep Gutturals', 'Tunnel Throat'], vmin=84, vmax=97)
+plot_multi_spectro(x_mels_list[:], z_mels_list[:], 48000, title_x=['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream'], title_z=['Grind Inhale', 'Pig Squeal', 'Deep Gutturals', 'Tunnel Throat'], ylabel='Frequency (Hz)', y_n_fft=512, vmin=0, vmax=15, cbar_label='Amplitude')
