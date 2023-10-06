@@ -79,7 +79,6 @@ def plot_multi_spectro(x_m, z_m, title_x, title_z, vmin=None, vmax=None, diff=Fa
     if save:
         plt.savefig('fig_spectro' + name + '.pdf', dpi=fig.dpi, bbox_inches='tight')
     plt.savefig('results/spectrograms.pdf')
-    plt.show()
 
 if __name__ == "__main__":
 
