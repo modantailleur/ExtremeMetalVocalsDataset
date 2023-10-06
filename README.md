@@ -35,17 +35,17 @@ python3 experiment.py -exp t_multiclass -step eval
 python3 experiment.py -exp t_multiclass -step metric
 ```
 
-You can run the previous lines with ''' -exp t_binary ''' to train on binary classification instead of multi-class classification.
+You can run the previous lines with `-exp t_binary` to train on binary classification instead of multi-class classification.
 
-After running the metric step, results are plotted in the terminal, and the confusion matrix for the multi-class classification is saved in the 'results' folder.
+After running the metric step, results are plotted in the terminal, and the confusion matrix for the multi-class classification is saved in the `results` folder.
 
-Note that if you want to do the experiment again using another seed for the kfold cross-validation or another number of folds, you can run the following command that will save the split as 'new_split_kfolds.csv' in the main directory:
+Note that if you want to do the experiment again using another seed for the kfold cross-validation or another number of folds, you can run the following command that will save the split as `new_split_kfolds.csv` in the main directory:
 
 ```
 python3 create_split_k_fold.py -seed 0 -n_splits 4
 ```
 
-You'll then just have to replace the old file with the new one in the folder 'EMVD'.
+You'll then just have to replace the old file with the new one in the folder `EMVD`.
 
 ## 3 - Paper figures replication
 
@@ -63,7 +63,7 @@ python3 plot_spectrograms.py
 
 ## 4 - Routine to merge metadata files
 
-There are two different metadata files: 'metadata_files.csv' that has metadata for each audio file recorded, and 'metadata_singers.csv' that has metadata for each singer. The two files can be joined on the column 'singer_id'. An example of how to join the two metadata files with pandas can be found in the jupyter notebook 'load_metadata.ipynb'.
+There are two different metadata files: `metadata_files.csv` which contains metadata for each audio file recorded, and `metadata_singers.csv` which contains metadata for each singer. The two files can be joined on the column `singer_id`. An example of how to join the two metadata files with pandas can be found in the jupyter notebook `load_metadata.ipynb`.
 
 ## REFERENCES
 
