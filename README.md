@@ -1,4 +1,4 @@
-# Spectral Transcoder : Using Pretrained Urban Sound Classifiers On Arbitrary Spectral Representations
+# EMVD dataset: a dataset of extreme vocal distortion techniques used in heavy metal
 
 This repo contains code for the paper: **EMVD dataset: a dataset of extreme vocal distortion techniques used in heavy metal** [1]. It gives instruction to reproduce the baseline experiments shown in the paper (sections 2 and 3), as well as example codes for using the [EMVD dataset](https://zenodo.org/record/8406322) metadata correctly (section 4). 
 
