@@ -2,10 +2,10 @@ import argparse
 import experiment_manager as em
 
 def main(config):
-    if config.exp == 't_classif':
+    if config.exp == 't_multiclass':
         dataset_name = 'mel_dataset_kfold'
-        out_name = 't_classif'
-        model_prefix = 'model_t_classif'
+        out_name = 't_multiclass'
+        model_prefix = 'model_t_multiclass'
         groundtruth='technique'
 
     if config.exp == 't_binary':
@@ -37,7 +37,7 @@ def main(config):
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-exp', '--exp', help='experiment among the list: "t_classif", "t_binary", "s_classif", "s_classif_no_distorsion"')
+    parser.add_argument('-exp', '--exp', help='experiment among the list: "t_multiclass", "t_binary", "s_classif", "s_classif_no_distorsion"')
     parser.add_argument('-step', '--step', help='step among the list: "train", "eval", "metric"')
     config = parser.parse_args()
     main(config)

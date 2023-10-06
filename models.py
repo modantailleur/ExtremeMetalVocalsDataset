@@ -40,68 +40,56 @@ class EffNet(nn.Module):
             self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
         if type == 'b5':
             self.model = EfficientNet.from_name('efficientnet-b5', num_classes=n_labels)
-            self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
-
-        # state_dict = torch.load("./efficient_net/efficientnet-b0-355c32eb.pth")
-        # state_dict.pop('_fc.weight')
-        # state_dict.pop('_fc.bias')
-        # self.model.load_state_dict(state_dict, strict=False)
-
-        # modify input conv layer to accept 1x101x64 input        
+            self.model._conv_stem = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)     
 
         self.model.to(device)
 
     def forward(self, x):
         x = torch.unsqueeze(x, dim=1)
-
-        #x = F.interpolate(x, size=(64, 33), mode='nearest')
-
         y_pred = self.model(x)
-        #clamp gave better results than sigmoid function
         y_pred = torch.sigmoid(y_pred)
-        #y_pred = torch.clamp(y_pred, min=0, max=1)
         return y_pred
 
-class MLP(nn.Module):
-    def __init__(self, input_shape, output_shape, dtype=torch.FloatTensor, 
-                 hl_1=100, hl_2=50):
-        super().__init__()
+# class MLP(nn.Module):
+#     def __init__(self, input_shape, output_shape, dtype=torch.FloatTensor, 
+#                  hl_1=100, hl_2=50):
+#         super().__init__()
         
-        self.input_shape = input_shape
-        self.output_shape = output_shape
-        self.hl_1 = hl_1
-        self.hl_2 = hl_2
-        self.input_fc = nn.Linear(input_shape, hl_1)
-        self.hidden_fc = nn.Linear(hl_1, hl_2)
-        self.output_fc = nn.Linear(hl_2, output_shape)
-        self.dtype = dtype
+#         self.input_shape = input_shape
+#         self.output_shape = output_shape
+#         self.hl_1 = hl_1
+#         self.hl_2 = hl_2
+#         self.input_fc = nn.Linear(input_shape, hl_1)
+#         self.hidden_fc = nn.Linear(hl_1, hl_2)
+#         self.output_fc = nn.Linear(hl_2, output_shape)
+#         self.dtype = dtype
 
-    def forward(self, x):
+#     def forward(self, x):
 
-        # x = [batch size, height, width]
+#         # x = [batch size, height, width]
 
-        # MT: useless lines (maybe when 2d spectrogramms given ?)
-        #batch_size = x.shape[0]
-        #x = x.view(batch_size, -1)
+#         # MT: useless lines (maybe when 2d spectrogramms given ?)
+#         #batch_size = x.shape[0]
+#         #x = x.view(batch_size, -1)
 
-        # x = [batch size, height * width]
+#         # x = [batch size, height * width]
         
-        x = torch.squeeze(x, dim=-1)
+#         x = torch.squeeze(x, dim=-1)
 
-        h_1 = F.relu(self.input_fc(x))
+#         h_1 = F.relu(self.input_fc(x))
 
-        # h_1 = [batch size, 250]
+#         # h_1 = [batch size, 250]
 
-        h_2 = F.relu(self.hidden_fc(h_1))
+#         h_2 = F.relu(self.hidden_fc(h_1))
 
-        # h_2 = [batch size, 100]
+#         # h_2 = [batch size, 100]
 
-        y_pred = self.output_fc(h_2)
+#         y_pred = self.output_fc(h_2)
         
-        y_pred = torch.sigmoid(y_pred)
+#         y_pred = torch.sigmoid(y_pred)
 
-        # y_pred = torch.reshape(y_pred, (y_pred.shape[0], self.output_shape[0], self.output_shape[1]))
+#         # y_pred = torch.reshape(y_pred, (y_pred.shape[0], self.output_shape[0], self.output_shape[1]))
 
-        # y_pred = [batch size, output dim]
+#         # y_pred = [batch size, output dim]
 
-        return y_pred
+#         return y_pred

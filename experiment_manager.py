@@ -6,17 +6,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import h5py
 import librosa
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import KFold
-from data_generator import SingerSplitDataset, TechniqueClassificationDataset, BinaryTechniqueClassificationDataset,  SingerClassificationDataset
-from models import EffNet, MLP
-from trainer import MelTrainer, MelRegularTrainer
+from data_generator import TechniqueClassificationDataset, BinaryTechniqueClassificationDataset,  SingerClassificationDataset
+from models import EffNet
+from trainer import MelTrainer
 import torch
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from torchaudio.transforms import MelSpectrogram
 import torch
-import matplotlib as mpl
 
 #fix the random seed
 torch.manual_seed(0)
@@ -32,8 +29,8 @@ def divide_chunks_2D(l, n):
 
 def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
 
-    file_meta = "metadata_files.csv"
-    file_kfolds = "split_kfolds.csv"
+    file_meta = "EMVD/metadata_files.csv"
+    file_kfolds = "EMVD/split_kfolds.csv"
 
     #read df and filter
     df_meta = pd.read_csv(file_meta)
@@ -80,12 +77,11 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
         'eval':2
     }
     n_frames = 192
-    n_fft=1024
+    n_fft = 1024
     hop_length = 256
     n_mels = 128
-    fmin=20
-    fmax=8000
-    window = 'hann'
+    fmin = 20
+    fmax = 8000
     norm = "slaney"
     mel_scale = "slaney"
 
@@ -107,9 +103,10 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
 
     #have to first calculate the melspectrograms, in order to get their shape to create the h5 files. Takes a bit of time but makes things easier 
     # for training and evaluating (only 1 h5 file for a dataset)
+    print('PRE-PROCESSING...')
     for idx, (f_name, f_singer, f_gt, f_split) in enumerate(zip(f_names, f_singers, f_gts, f_splits)):
         
-        audio, sr = librosa.load('CTED/'+f_name, sr=48000)
+        audio, sr = librosa.load('EMVD/audio/'+f_name, sr=48000)
         audio = librosa.util.normalize(audio)
 
         x_wave = torch.Tensor(audio).unsqueeze(0)
@@ -133,7 +130,7 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
             if f_split[split] == 'eval':
                 mels_n_num_per_split[split][2] += mels.shape[0]
 
-        print(f'\rCOMPUTED: {idx} / {len(f_names)}')
+        # print(f'\rCOMPUTED: {idx} / {len(f_names)}')
 
     create_folder(os.path.dirname('./mel_dataset/'))
     with h5py.File(out_path + dataset_name+ '.h5', 'w') as hf:
@@ -166,7 +163,7 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
 
         for idx, (f_name, f_singer, f_gt, f_split) in enumerate(zip(f_names, f_singers, f_gts, f_splits)):
 
-            audio, sr = librosa.load('CTED/'+f_name, sr=48000)
+            audio, sr = librosa.load('EMVD/audio/'+f_name, sr=48000)
             audio = librosa.util.normalize(audio)
 
             x_wave = torch.Tensor(audio).unsqueeze(0)
@@ -174,9 +171,6 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
             torch_mels = 10 * torch.log10(torch_mels + 1e-10)
             torch_mels = torch.clamp((torch_mels + 100) / 100, min=0.0)
             mels = torch_mels.squeeze(0).numpy()
-
-            # mels = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax)
-            # mels = np.log(mels + 10e-10)
 
             mels = np.array([mels[:, i:i + n_frames] for i in range(0, mels.shape[1], n_frames) if mels[:, i:i + n_frames].shape[1] == n_frames])
 
@@ -193,10 +187,13 @@ def create_mel_dataset(dataset_name='default', distorsion_in_train=True):
 
                 mels_n_num[split][tve_idx] += mels.shape[0]
                 
-                print(f'\rCOMPUTED: {idx} / {len(f_names)}')
+                print(f'\rCOMPUTED: {idx+1} / {len(f_names)}')
 
 def train_model(dataset_name='default', model_prefix='default', groundtruth='technique', epochs=20, batch_size=32):
 
+    create_folder(os.path.dirname('./losses/'))
+    create_folder(os.path.dirname('./model/'))
+    create_folder(os.path.dirname('./outputs/'))
     if groundtruth == 'technique':
         Dataset = TechniqueClassificationDataset
         n_labels = 4
@@ -242,7 +239,7 @@ def train_model(dataset_name='default', model_prefix='default', groundtruth='tec
         eval_datasets.append(Dataset(hdf5_path=data_path+dataset_name+'.h5', split_id=split_id, split_type='eval'))
 
     for split_id in range(n_splits):
-        trainer = MelRegularTrainer(model=models[split_id], models_path='./model/', model_name=f'{model_prefix}_{split_id+1}', split_id=split_id, train_dataset=train_datasets[split_id], valid_dataset=valid_datasets[split_id], eval_dataset=eval_datasets[split_id])
+        trainer = MelTrainer(model=models[split_id], models_path='./model/', model_name=f'{model_prefix}_{split_id+1}', split_id=split_id, train_dataset=train_datasets[split_id], valid_dataset=valid_datasets[split_id], eval_dataset=eval_datasets[split_id])
         loss_train = trainer.train(device=device, batch_size=batch_size, epochs=epochs)
         np.save('losses/loss_'+trainer.model_name+'.npy', loss_train)
         trainer.save_model()
@@ -291,7 +288,7 @@ def eval_model(dataset_name='default', model_prefix='default', groundtruth='tech
         eval_datasets.append(Dataset(hdf5_path=data_path+dataset_name+'.h5', split_id=split_id, split_type='eval'))
 
     for split_id in range(n_splits):
-        trainer = MelRegularTrainer(model=models[split_id], models_path='./model/', model_name=f'{model_prefix}_{split_id+1}', split_id=split_id, train_dataset=train_datasets[split_id], eval_dataset=eval_datasets[split_id], out_name=out_name)
+        trainer = MelTrainer(model=models[split_id], models_path='./model/', model_name=f'{model_prefix}_{split_id+1}', split_id=split_id, train_dataset=train_datasets[split_id], eval_dataset=eval_datasets[split_id], out_name=out_name)
         trainer.load_model(device=device)
         trainer.evaluate(device=device)
 
@@ -353,10 +350,7 @@ def calculate_metric(out_name='default', exp_type='technique'):
         plt.xticks(rotation=45, ha='right')
         plt.yticks(rotation=0, ha='right')
         plt.subplots_adjust(left=0.3, right=1.0, top=0.9, bottom=0.3)
-        # plt.xlabel("Predicted")
-        # plt.ylabel("Actual")
-        # plt.title("Confusion Matrix")
-        plt.show()
+        plt.savefig('results/confusion_matrix_multiclass.pdf')
     else:
         conf_mat = confusion_matrix(inference_file, groundtruth_file, normalize='true')
 
@@ -364,4 +358,5 @@ def calculate_metric(out_name='default', exp_type='technique'):
     print(np.mean(scores_file))
     print('MACRO ACCURACY')
     print(np.mean(np.diag(conf_mat)))
+    print('CONFUSION MATRIX')
     print(conf_mat)

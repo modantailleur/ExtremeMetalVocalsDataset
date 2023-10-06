@@ -11,19 +11,17 @@ font = {'family' : 'Times New Roman',
 
 matplotlib.rc('font', **font)
 
-file_meta = "metadata_files.csv"
-file_meta_singers = "metadata_singers.csv"
+file_meta = "EMVD/metadata_files.csv"
+file_meta_singers = "EMVD/metadata_singers.csv"
 df_meta = pd.read_csv(file_meta)
 df_meta_singers = pd.read_csv(file_meta_singers)
 f_names = df_meta['file_name'].to_numpy()
 l_audio_length = []
 font_size = 25
-# df_total = df_meta.merge(df_meta_singers, on="singer_id", how="inner")  # You can change "how" to other options if needed (e.g., "outer", "left", "right")
-# #just to check if there are any mistakes (0 put at techniques where there is an audio file)
-# df_total_mistakes = df_total[df_total.iloc[:, -14:].eq(0).any(axis=1)]
 
+#calculate the length of each audio file
 for f_name in f_names:
-    audio, sr = librosa.load('CTED/'+f_name, sr=48000)
+    audio, sr = librosa.load('EMVD/audio/'+f_name, sr=48000)
     audio_len = len(audio)/48000
     l_audio_length.append(audio_len)
 
@@ -38,27 +36,27 @@ differences = [item for item in f_names_in_folder if item not in f_names]
 
 df_meta['audio_len'] = l_audio_length
 df_meta = df_meta[df_meta['type']!='Other']
-# df_meta = df_meta[df_meta['type']=='Technique']
 
 df_meta = df_meta[df_meta['authors_rank']!='C']
 df_meta = df_meta[df_meta['authors_rank']!='-']
 
-print('Total seconds')
+print('Total duration')
 print(np.sum(df_meta['audio_len'].to_numpy()))
 
-print('Seconds of clear Voice')
+print('Clear Voice duration')
 print(np.sum(df_meta[df_meta['name']=='ClearVoice']['audio_len'].to_numpy()))
 
 df_bar = df_meta.groupby(['name', 'type']).agg(total_audio_len=('audio_len', 'sum'),
                                     count_audio=('audio_len', 'count')).reset_index()
 df_bar_perc = df_bar.copy()
 df_bar_perc['total_audio_len'] = 100 * df_bar_perc['total_audio_len'] / df_bar_perc['total_audio_len'].sum()
-print('AUDIO LENGTH REPARTITION')
+
+print('DURATION OF EACH TECHNIQUE')
 print(df_bar_perc)
 
 
-# Set up the plot
-plt.figure(figsize=(10, 6))
+#########################
+## PLOT THE DURATION ANALYSIS FROM THE PAPER, AND SAVE IT IN 'results'
 
 col_pal = sns.color_palette("colorblind")
 order = ['ClearVoice', 'BlackShriek', 'DeathGrowl', 'HardcoreScream', 'GrindInhale', 'PigSqueal', 'DeepGutturals', 'TunnelThroat']
@@ -66,49 +64,8 @@ short_name = ['CV', 'BS', 'DG', 'HS', 'GI', 'PS', 'DeG', 'TT']
 full_name = ['Clear Voice', 'Black Shriek', 'Death Growl', 'Hardcore Scream', 'Grind Inhale', 'Pig Squeel', 'Deep Gutturals', 'Tunnel Throat']
 colors = [col_pal[9], col_pal[9], col_pal[9], col_pal[9], col_pal[9], col_pal[5], col_pal[5], col_pal[5]]
 
-# Create a bar plot
-ax = sns.barplot(data=df_bar, y='name', x='total_audio_len', palette=colors, order=order)
-ax.set_yticklabels(full_name)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.spines['left'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
-
-sns.set_color_codes("muted")
-
-# plt.xlabel('Technique or vocal effect')
-plt.xlabel('Total samples duration (s)')
-plt.ylabel('')
-# plt.title('Duration of each vocal technique and vocal effect')
-#plt.xticks(rotation=45, ha='right')
-# Remove the top and right spines (lines)
-plt.tight_layout()
-plt.show()
-
-
 df_bar_singer = df_meta.groupby('name')['singer_id'].nunique().reset_index()
 df_bar_singer.columns = ['name', 'num_singers']
-
-# Set up the plot
-plt.figure(figsize=(10, 6))
-
-# Create a bar plot
-ax = sns.barplot(data=df_bar_singer, y='name', x='num_singers', palette=colors, order=order)
-ax.set_yticklabels(full_name)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.spines['left'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
-
-# plt.xlabel('Technique')
-plt.ylabel('')
-plt.xlabel('Number of singers')
-# plt.title('Number of singers for each technique')
-
-plt.xticks(rotation=0, ha='right')
-# plt.legend(title='Vowel')
-plt.tight_layout()
-plt.show()
 
 # Create a figure with two subplots, one for each bar graph
 fig, axs = plt.subplots(1, 2, figsize=(20, 6))
@@ -141,4 +98,4 @@ ax2.set_ylabel('')
 
 # Adjust layout and display the plot
 plt.tight_layout()
-plt.show()
+plt.savefig('results/dataset_duration_and_number_of_singers.pdf')
